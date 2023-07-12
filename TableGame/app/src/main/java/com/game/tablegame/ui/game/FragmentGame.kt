@@ -62,6 +62,7 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
                 delay(50)
                 viewModel.enemyGates = binding.enemyGates.x to binding.enemyGates.y
                 viewModel.playerGates = binding.playerGates.x to binding.playerGates.y
+                viewModel.resume()
                 viewModel.moveEnemyToRandomItem()
             }
         }
@@ -145,7 +146,8 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
                     val isIntersectingWithEnemyGatesY = y1 <= y2 + height2 && y1 + height1 >= y2
 
                     if (isIntersectingWithEnemyGatesX && isIntersectingWithEnemyGatesY &&
-                        viewModel.playerInventory.value!!.value == ItemValue.BOMB) {
+                        viewModel.playerInventory.value!!.value == ItemValue.BOMB
+                    ) {
                         viewModel.increaseEnemyScore(getScore(ItemValue.BOMB))
                         viewModel.removeFromPlayerInventory()
                     }
@@ -220,7 +222,8 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
                     val isIntersectingWithPlayerGatesY = y1 <= y2 + height2 && y1 + height1 >= y2
 
                     if (isIntersectingWithPlayerGatesX && isIntersectingWithPlayerGatesY &&
-                        viewModel.enemyInventory.value!!.value == ItemValue.BOMB) {
+                        viewModel.enemyInventory.value!!.value == ItemValue.BOMB
+                    ) {
                         viewModel.increasePlayerScore(getScore(ItemValue.BOMB))
                         viewModel.removeFromEnemyInventory()
                     }
@@ -341,6 +344,16 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
                     }
                 }
                 true
+            } else if (motionEvent.action == MotionEvent.ACTION_MOVE) {
+                moveScope.cancel()
+                moveScope = CoroutineScope(Dispatchers.Default)
+                moveScope.launch {
+                    while (true) {
+                        viewModel.playerMoveUp(binding.gameLayout.y)
+                        delay(2)
+                    }
+                }
+                true
             } else {
                 moveScope.cancel()
                 moveScope = CoroutineScope(Dispatchers.Default)
@@ -350,6 +363,16 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
 
         binding.buttonLeft.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                moveScope.launch {
+                    while (true) {
+                        viewModel.playerMoveLeft(binding.gameLayout.x + dpToPx(30))
+                        delay(2)
+                    }
+                }
+                true
+            } else if (motionEvent.action == MotionEvent.ACTION_MOVE) {
+                moveScope.cancel()
+                moveScope = CoroutineScope(Dispatchers.Default)
                 moveScope.launch {
                     while (true) {
                         viewModel.playerMoveLeft(binding.gameLayout.x + dpToPx(30))
@@ -377,6 +400,20 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
                     }
                 }
                 true
+            } else if (motionEvent.action == MotionEvent.ACTION_MOVE) {
+                moveScope.cancel()
+                moveScope = CoroutineScope(Dispatchers.Default)
+                moveScope.launch {
+                    while (true) {
+                        viewModel.playerMoveRight(
+                            binding.gameLayout.x + binding.gameLayout.width - dpToPx(
+                                30
+                            )
+                        )
+                        delay(2)
+                    }
+                }
+                true
             } else {
                 moveScope.cancel()
                 moveScope = CoroutineScope(Dispatchers.Default)
@@ -386,6 +423,20 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
 
         binding.buttonDown.setOnTouchListener { _, motionEvent ->
             if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                moveScope.launch {
+                    while (true) {
+                        viewModel.playerMoveDown(
+                            binding.gameLayout.y + binding.gameLayout.height - dpToPx(
+                                80
+                            )
+                        )
+                        delay(2)
+                    }
+                }
+                true
+            } else if (motionEvent.action == MotionEvent.ACTION_MOVE) {
+                moveScope.cancel()
+                moveScope = CoroutineScope(Dispatchers.Default)
                 moveScope.launch {
                     while (true) {
                         viewModel.playerMoveDown(
@@ -421,6 +472,11 @@ class FragmentGame : ViewBindingFragment<FragmentGameBinding>(FragmentGameBindin
 
     private fun lose() {
         findNavController().navigate(FragmentGameDirections.actionFragmentGameToDialogEnd("You Lose!"))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.pause()
     }
 
     private fun dpToPx(dp: Int): Int {

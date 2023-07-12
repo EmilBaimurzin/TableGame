@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class GameViewModel : ViewModel() {
@@ -43,7 +44,7 @@ class GameViewModel : ViewModel() {
     private val _items = MutableLiveData(repository.generateList())
     val items: LiveData<List<GameItem>> = _items
 
-    private val gameScope = CoroutineScope(Dispatchers.Default)
+    private var gameScope = CoroutineScope(Dispatchers.Default)
 
     fun setItemsPosition(minX: Float, maxX: Float, minY: Float, maxY: Float) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -154,23 +155,27 @@ class GameViewModel : ViewModel() {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             while (true) {
-                if (_enemyInventory.value == null) {
-                    callback.invoke()
+                if (gameScope.isActive) {
+                    if (_enemyInventory.value == null) {
+                        callback.invoke()
+                        scope.cancel()
+                    }
+
+                    if (_enemyPosition.value!!.first > enemyGates.first) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
+                    } else {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
+                    }
+
+                    if (_enemyPosition.value!!.second > enemyGates.second) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
+                    } else {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
+                    }
+                    delay(6)
+                } else {
                     scope.cancel()
                 }
-
-                if (_enemyPosition.value!!.first > enemyGates.first) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
-                } else {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
-                }
-
-                if (_enemyPosition.value!!.second > enemyGates.second) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
-                } else {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
-                }
-                delay(6)
             }
         }
     }
@@ -179,23 +184,27 @@ class GameViewModel : ViewModel() {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             while (true) {
-                if (_enemyInventory.value == null) {
-                    callback.invoke()
+                if (gameScope.isActive) {
+                    if (_enemyInventory.value == null) {
+                        callback.invoke()
+                        scope.cancel()
+                    }
+
+                    if (_enemyPosition.value!!.first > playerGates.first) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
+                    } else {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
+                    }
+
+                    if (_enemyPosition.value!!.second > playerGates.second) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
+                    } else {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
+                    }
+                    delay(6)
+                } else {
                     scope.cancel()
                 }
-
-                if (_enemyPosition.value!!.first > playerGates.first) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
-                } else {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
-                }
-
-                if (_enemyPosition.value!!.second > playerGates.second) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
-                } else {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
-                }
-                delay(6)
             }
         }
     }
@@ -204,37 +213,49 @@ class GameViewModel : ViewModel() {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
             while (true) {
-                if (_enemyInventory.value != null) {
-                    callback.invoke()
+                if (gameScope.isActive) {
+                    if (_enemyInventory.value != null) {
+                        callback.invoke()
+                        scope.cancel()
+                    }
+
+                    if (_enemyPosition.value!!.first == x && _enemyPosition.value!!.second == y) {
+                        callback.invoke()
+                        scope.cancel()
+                    }
+
+                    if (_enemyPosition.value!!.first > x) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
+                    }
+                    if (_enemyPosition.value!!.first < x) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
+                    }
+
+                    if (_enemyPosition.value!!.second > y) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
+                    }
+                    if (_enemyPosition.value!!.second < y) {
+                        _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
+                    }
+                    delay(6)
+                } else {
                     scope.cancel()
                 }
-
-                if (_enemyPosition.value!!.first == x && _enemyPosition.value!!.second == y) {
-                    callback.invoke()
-                    scope.cancel()
-                }
-
-                if (_enemyPosition.value!!.first > x) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first - 1 to _enemyPosition.value!!.second)
-                }
-                if (_enemyPosition.value!!.first < x) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first + 1 to _enemyPosition.value!!.second)
-                }
-
-                if (_enemyPosition.value!!.second > y) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second - 1)
-                }
-                if (_enemyPosition.value!!.second < y) {
-                    _enemyPosition.postValue(_enemyPosition.value!!.first to _enemyPosition.value!!.second + 1)
-                }
-                delay(6)
             }
         }
     }
 
-    fun endGame () {
+    fun endGame() {
         gameScope.cancel()
         _timer.postValue(-1)
+    }
+
+    fun pause() {
+        gameScope.cancel()
+    }
+
+    fun resume() {
+        gameScope = CoroutineScope(Dispatchers.Default)
     }
 
 
