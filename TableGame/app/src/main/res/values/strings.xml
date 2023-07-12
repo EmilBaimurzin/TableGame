@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TableGame</string>
+    <string name="start">START</string>
+    <string name="buy">BUY</string>
+    <string name="exit">EXIT</string>
+    <string name="menu">MENU</string>
+</resources>
